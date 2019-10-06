@@ -1,65 +1,68 @@
 
-/* A Java program for a Client */
+/* A Java program for a chat_client */
 import java.net.*;
 import java.io.*;
-import java.util.*;
 
-public class http_client
+public class chat_client
 {
+/* initialize socket and input output streams */
+private Socket socket = null;
+private BufferedReader input = null;
+private DataOutputStream out = null;
 
-/* constructor */
-public http_client(String loc)
+/* constructor to put ip address and port */
+public chat_client(String address, int port)
 {
-  try{
-    URL url = new URL(loc);
-    HttpURLConnection c = (HttpURLConnection) url.openConnection();
-    c.setRequestMethod("GET");
-    int responseCode = c.getResponseCode();
-    if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP || responseCode == HttpURLConnection.HTTP_MOVED_PERM) {
-      String newLoc = c.getHeaderField("Location");
-      URL newurl = new URL(newLoc);
-      c = (HttpURLConnection) newurl.openConnection();
-      responseCode = c.getResponseCode();
-    }
+	/* establish a connection */
+	try {
+		socket = new Socket(address, port);
+	} catch(Exception i) {
+		System.out.println("Error in IP or port");
+		System.exit(0);
+    	}
+	System.out.println("Connected");
 
-    if (responseCode == HttpURLConnection.HTTP_OK) {
-      BufferedWriter output = new BufferedWriter(new FileWriter("http_client_output"));
-      output.write("Printing HTTP header info from: " + loc + "\n");
+	try {
+		/* takes input from terminal */
+		input = new BufferedReader(new InputStreamReader(System.in));
 
-      Map<String, List<String>> headers = c.getHeaderFields();
-      Set<String> keys = headers.keySet();
-      for (String k:keys) {
-        output.append(k + " " + headers.get(k) + "\n");
-      }
-      output.append("\n\nURL content...\n");
+		/* sends output to the socket */
+		out = new DataOutputStream(socket.getOutputStream());
 
-      BufferedReader input = new BufferedReader(new InputStreamReader(c.getInputStream()));
+	} catch(IOException i) {
+		System.out.println(i);
+	}
 
-      String line = input.readLine();
-      while(line != null) {
-        output.append(line);
-        line = input.readLine();
-      }
+	/* string to read message from input */
+	String line = "";
 
-      input.close();
-      output.close();
+	/* keep reading until "Over" is input */
+	while (!line.equals("Over")) {
+		try {
+			line = input.readLine();
+			out.writeUTF(line);
+		} catch(Exception i) {
+			System.out.println(i);
+		}
+	}
 
-    } else {
-      System.out.println("GET failed");
-    }
-
-  } catch(Exception e) {
-    System.out.println(e);
-  }
+	/* close the connection */
+	try {
+		input.close();
+		out.close();
+		socket.close();
+	} catch(Exception i) {
+		System.out.println(i);
+	}
 }
 
 public static void main(String args[])
 {
-	if (args.length < 1) {
-		System.out.println("http_client usage: java http_client #http://hostname/path/to/file");
+	if (args.length < 2) {
+		System.out.println("chat_client usage: java chat_client #IP_address #port_number");
 	}
 	else {
-		http_client client = new http_client(args[0]);
+		chat_client chat_client = new chat_client(args[0], Integer.parseInt(args[1])); 
 	}
 }
 

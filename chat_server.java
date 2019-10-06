@@ -3,16 +3,16 @@
 import java.net.*;
 import java.io.*;
 
-public class Server
+public class chat_server
 {
 /* initialize socket and input stream */
-private Socket[100] socket;
+private Socket[] socket = new Socket[100];
 private ServerSocket server = null;
 private DataInputStream in = null;
 private DataOutputStream out = null;
-private String[100] clients;
+private String[] clients = new String[100];
 //free = 0, busy = 1
-private Boolean[100] states;
+private Boolean[] states = new Boolean[100];
 private int numClients = 0;
 private int numFree = 0;
 
@@ -30,59 +30,64 @@ public chat_server(int port)
 
   for (int i = 0; i < 100; i++) {
     socket[i] = null;
-    clients[i] = '';
+    clients[i] = "";
     states[i] = false;
   }
 
   int counter = 0;
-  while (counter < 100)
+  try {
+    while (counter < 100) {
 
-  	System.out.println("Waiting for a client ...");
-  	try {
-  		socket[counter] = server.accept();
-  		System.out.println("Client accepted");
-      /* takes input from the client socket */
-      numClients++;
-      numFree ++;
+    	System.out.println("Waiting for a client ...");
+    	try {
+    		socket[counter] = server.accept();
+    		System.out.println("Client accepted");
+        /* takes input from the client socket */
+        numClients++;
+        numFree ++;
 
-      in = new DataInputStream(
-          new BufferedInputStream(socket.getInputStream()));
-      out = new DataOutputStream(
-          new BufferedOutputStream(socket.getOutputStream()); 
+        in = new DataInputStream(
+            new BufferedInputStream(socket[counter].getInputStream()));
+        out = new DataOutputStream(
+            new BufferedOutputStream(socket[counter].getOutputStream()));
 
-      clients[counter] = in.readUTF();
+        clients[counter] = in.readUTF();
 
-      System.out.println("List of clients and states");
-      int j = 0;
-      for (int i = 0; i < 100; i++) {
-        if (socket[i] != null) {
-          System.out.print(clients[i] + "          ");
-          if (states[i]) {
-            System.out.println("busy");
-          } else {
-            System.out.println("free");
+        System.out.println("List of clients and states");
+        int j = 0;
+        for (int i = 0; i < 100; i++) {
+          if (socket[i] != null) {
+            line = clients[i] + "          ";
+            if (states[i]) {
+              line = line + "busy";
+            } else {
+              line = line + "free";
+            }
+            System.out.println(line);
+            out.writeUTF(line);
+            j++;
           }
-          j++;
+          if (j >= numClients) {
+            break;
+          }
         }
-        if (j >= numClients) {
-          break;
+
+        if (numFree >= 2) {
+          connect();
         }
-      }
 
-      if (numFree >= 2) {
-        connect();
-      }
+        counter++;
+      } catch(Exception i) {
+    	    System.out.println(i);
+    	}
 
-      counter++;
     }
-		System.out.println("Closing connection");
+    System.out.println("Closing connection");
 
-		/* close connection */
-		socket.close();
-		in.close();
-    input.close();
+    /* close connection */
+    socket[counter].close();
+    in.close();
     out.close();
-
 	} catch(EOFException i) {
 	    System.out.println(i);
 	}
@@ -94,11 +99,11 @@ public chat_server(int port)
 public static void main(String args[])
 {
 	if (args.length < 1) {
-		System.out.println("Server usage: java Server #port_number");
+		System.out.println("Server usage: java chat_server #port_number");
 	}
 	else {
 		try {
-			Server server = new Server(Integer.parseInt(args[0]));
+			chat_server server = new chat_server(Integer.parseInt(args[0]));
 		} catch(Exception i) {
 			System.out.println("Error in port");
 		}
@@ -108,5 +113,6 @@ public static void main(String args[])
 private static void connect(){
 
 }
+
 
 }
