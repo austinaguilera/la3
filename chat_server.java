@@ -6,15 +6,16 @@ import java.io.*;
 public class chat_server
 {
 /* initialize socket and input stream */
-private Socket[] socket = new Socket[100];
-private ServerSocket server = null;
-private DataInputStream in = null;
+private Socket[]      socket = new Socket[100];
+private ServerSocket  server = null;
+private DataInputStream   in = null;
 private DataOutputStream out = null;
-private String[] clients = new String[100];
+private Thread        thread = null;
+private String[]     clients = new String[100];
 //free = 0, busy = 1
-private Boolean[] states = new Boolean[100];
-private int numClients = 0;
-private int numFree = 0;
+private Boolean[]     states = new Boolean[100];
+private int       numClients = 0;
+private int          numFree = 0;
 
 /* constructor with port */
 public chat_server(int port)
@@ -34,9 +35,11 @@ public chat_server(int port)
     states[i] = false;
   }
 
-  int counter = 0;
+  connect();
+}
+
+public void run(){
   try {
-    while (counter < 100) {
 
     	System.out.println("Waiting for a client ...");
     	try {
@@ -81,9 +84,6 @@ public chat_server(int port)
     	    System.out.println(i);
     	}
 
-    }
-    System.out.println("Closing connection");
-
     /* close connection */
     socket[counter].close();
     in.close();
@@ -95,6 +95,15 @@ public chat_server(int port)
 	    System.out.println(i);
 	}
 }
+
+public void connect(){
+  if (thread == null) {
+    thread = new Thread(this);
+    thread.start();
+  }
+
+}
+
 
 public static void main(String args[])
 {
@@ -110,9 +119,6 @@ public static void main(String args[])
 	}
 }
 
-private static void connect(){
-
-}
 
 
 }
