@@ -9,6 +9,7 @@ public class chat_client
 private Socket socket = null;
 private BufferedReader input = null;
 private DataOutputStream out = null;
+private DataInputStream   in = null;
 
 /* constructor to put ip address and port */
 public chat_client(String address, int port)
@@ -20,7 +21,7 @@ public chat_client(String address, int port)
 		System.out.println("Error in IP or port");
 		System.exit(0);
     	}
-	System.out.println("Connected");
+	System.out.println("Connected\nEnter Name:");
 
 	try {
 		/* takes input from terminal */
@@ -28,6 +29,16 @@ public chat_client(String address, int port)
 
 		/* sends output to the socket */
 		out = new DataOutputStream(socket.getOutputStream());
+
+    in = new DataInputStream(
+        new BufferedInputStream(socket.getInputStream()));
+
+    String name = input.readLine();
+    out.writeUTF(name);
+    out.flush();
+    System.out.println("try");
+    String line1 = in.readUTF();
+    System.out.println(line1);
 
 	} catch(IOException i) {
 		System.out.println(i);
@@ -62,7 +73,7 @@ public static void main(String args[])
 		System.out.println("chat_client usage: java chat_client #IP_address #port_number");
 	}
 	else {
-		chat_client chat_client = new chat_client(args[0], Integer.parseInt(args[1])); 
+		chat_client chat_client = new chat_client(args[0], Integer.parseInt(args[1]));
 	}
 }
 

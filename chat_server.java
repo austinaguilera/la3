@@ -3,7 +3,7 @@
 import java.net.*;
 import java.io.*;
 
-public class chat_server
+public class chat_server implements Runnable
 {
 /* initialize socket and input stream */
 private Socket[]      socket = new Socket[100];
@@ -15,7 +15,8 @@ private String[]     clients = new String[100];
 //free = 0, busy = 1
 private Boolean[]     states = new Boolean[100];
 private int       numClients = 0;
-private int          numFree = 0;
+private int          numFree = 100;
+private int    clientCounter = 0;
 
 /* constructor with port */
 public chat_server(int port)
@@ -39,61 +40,65 @@ public chat_server(int port)
 }
 
 public void run(){
-  try {
+  while(thread != null)
+    try {
 
-    	System.out.println("Waiting for a client ...");
-    	try {
-    		socket[counter] = server.accept();
-    		System.out.println("Client accepted");
-        /* takes input from the client socket */
-        numClients++;
-        numFree ++;
+      	System.out.println("Waiting for a client ...");
+      	try {
+      		socket[clientCounter] = server.accept();
+          System.out.println(clientCounter);
+          System.out.println(socket[clientCounter]);
+      		System.out.println("Client accepted");
+          /* takes input from the client socket */
+          numClients++;
+          numFree ++;
 
-        in = new DataInputStream(
-            new BufferedInputStream(socket[counter].getInputStream()));
-        out = new DataOutputStream(
-            new BufferedOutputStream(socket[counter].getOutputStream()));
+          in = new DataInputStream(
+              new BufferedInputStream(socket[clientCounter].getInputStream()));
+          out = new DataOutputStream(socket[clientCounter].getOutputStream()));
+          System.out.println(out);
 
-        clients[counter] = in.readUTF();
+          clients[clientCounter] = in.readUTF();
+          
 
-        System.out.println("List of clients and states");
-        int j = 0;
-        for (int i = 0; i < 100; i++) {
-          if (socket[i] != null) {
-            line = clients[i] + "          ";
-            if (states[i]) {
-              line = line + "busy";
-            } else {
-              line = line + "free";
+          out.writeUTF("List of clients and states");
+          out.flush();
+          System.out.println("List of clients and states");
+
+
+          String line;
+
+          int j = 0;
+          for (int i = 0; i < 100; i++) {
+            if (socket[i] != null) {
+              line = clients[i] + "          ";
+              if (states[i]) {
+                line = line + "busy";
+              } else {
+                line = line + "free";
+              }
+              System.out.println(line);
+              System.out.println("Try " + i);
+              out.writeUTF(line);
+              j++;
             }
-            System.out.println(line);
-            out.writeUTF(line);
-            j++;
+            if (j >= numClients) {
+              System.out.println("break: " + i);
+              break;
+            }
           }
-          if (j >= numClients) {
-            break;
-          }
-        }
 
-        if (numFree >= 2) {
-          connect();
-        }
+          clientCounter++;
+        } catch(Exception i) {
+      	    System.out.println(i);
+      	}
 
-        counter++;
-      } catch(Exception i) {
-    	    System.out.println(i);
-    	}
 
-    /* close connection */
-    socket[counter].close();
-    in.close();
-    out.close();
-	} catch(EOFException i) {
-	    System.out.println(i);
-	}
-	catch(Exception i) {
-	    System.out.println(i);
-	}
+
+  	} catch(Exception i) {
+  	    System.out.println(i);
+  	}
+  }
 }
 
 public void connect(){
